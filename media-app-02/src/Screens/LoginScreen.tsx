@@ -1,45 +1,51 @@
-// LoginPage.tsx
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router';
+import { LoginApi } from '../api/api';
+import Loader from '../components/Loader';
 
 const LoginScreen: React.FC = () => {
-  const [email, setEmail] = useState<string>('');
+  const [username, setUsername] = useState<string>('');
   const [password, setPassword] = useState<string>('');
   const [error, setError] = useState<string>('');
-    const nav = useNavigate();
-  const handleEmailChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setEmail(e.target.value);
+  const [loading,setLoading] = useState(false)
+  const nav = useNavigate();
+
+  const handleUsernameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setUsername(e.target.value);
   };
 
   const handlePasswordChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setPassword(e.target.value);
   };
 
-  const validateEmail = (email: string): boolean => {
-    // Basic email validation regex (just to ensure it's in correct format)
-    const emailRegex = /^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,6}$/;
-    return emailRegex.test(email);
-  };
-
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     // Reset error message on each submit attempt
     setError('');
 
     // Basic validation checks
-    if (!email || !password) {
+    if (!username || !password) {
       setError('Please fill in both fields.');
       return;
     }
+    setLoading(true)
+    LoginApi({
+      username: username,
+      password: password,
+    }).then(res=>{
+      setLoading(false)
+      localStorage.setItem("accesstoken",res.token)
+      nav('/')
+    }).catch(err=>{
+    setLoading(false)
+      console.log(err);
+    });
+  };
 
-    if (!validateEmail(email)) {
-      setError('Please enter a valid email address.');
-      return;
-    }
-    nav('/')
-    
-};
+  if(loading){
+    return <Loader />
+  }
 
   return (
     <div className="min-h-screen flex justify-center items-center bg-gradient-to-r from-purple-600 to-indigo-800">
@@ -56,20 +62,24 @@ const LoginScreen: React.FC = () => {
 
         <form className="space-y-6" onSubmit={handleSubmit}>
           <div className="space-y-2">
-            <label className="text-white font-semibold" htmlFor="email">Email</label>
+            <label className="text-white font-semibold" htmlFor="username">
+              Username
+            </label>
             <input
-              type="email"
-              id="email"
-              name="email"
-              value={email}
-              onChange={handleEmailChange}
+              type="text"
+              id="username"
+              name="username"
+              value={username}
+              onChange={handleUsernameChange}
               className="w-full p-3 rounded-lg bg-gray-700 text-white focus:outline-none focus:ring-2 focus:ring-purple-500"
-              placeholder="Enter your email"
+              placeholder="Enter your username"
             />
           </div>
 
           <div className="space-y-2">
-            <label className="text-white font-semibold" htmlFor="password">Password</label>
+            <label className="text-white font-semibold" htmlFor="password">
+              Password
+            </label>
             <input
               type="password"
               id="password"
@@ -89,7 +99,12 @@ const LoginScreen: React.FC = () => {
           </button>
 
           <div className="text-center text-white mt-4">
-            <p>Don't have an account? <a href="#" className="text-purple-500 hover:underline">Sign up</a></p>
+            <p>
+              Don't have an account?{' '}
+              <a href="#" className="text-purple-500 hover:underline">
+                Sign up
+              </a>
+            </p>
           </div>
         </form>
       </div>

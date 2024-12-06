@@ -1,10 +1,13 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router";
 import CLOUDS from 'vanta/src/vanta.clouds'
+import { LoginApi } from "../api/api";
+import Loader from "../components/Loader";
 
 const LoginScreem = () => {
   const [formData, setFormData] = useState({ username: "", password: "" });
   const [error, setError] = useState("");
+  const [Loading,setLoading] = useState(false)
   const navigate= useNavigate()
 
   useEffect(()=>{
@@ -24,9 +27,23 @@ const LoginScreem = () => {
       setError("Please fill out both fields.");
       return;
     }
-    setError("");
-    navigate("/")
+    setLoading(true)
+    LoginApi(formData).then(res=>{
+      console.log(res.token);
+      
+      localStorage.setItem("accesstoken",res.token)
+      setLoading(false)
+      navigate('/')
+    }).catch(err=>{
+      setLoading(false)
+      console.log("Error ",err);
+      
+    })
   };
+
+  if(Loading){
+    return  <Loader />
+  }
 
   return (
     <div className="flex items-center justify-center min-h-screen bg-gray-100" id='background'>

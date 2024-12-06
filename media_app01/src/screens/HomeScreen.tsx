@@ -1,44 +1,61 @@
-import React, { useCallback } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import CustomHeader from "../components/Header";
 import { useNavigate } from "react-router";
+import { getMedia } from "../api/api";
+import Loader from "../components/Loader";
 
 const HomeScreen = () => {
   const navigate = useNavigate()
-  const cards = [
+  const [Loading,setLoading] = useState(false)
+  const [cards,setCards] = useState([
     {
-      id: 1,
-      image: "https://via.placeholder.com/300",
+      media_id: 1,
+      media_file: "https://via.placeholder.com/300",
       title: "Card Title 1",
       description: "This is a short description for card 1.",
       time: "2h 30m",
     },
     {
-      id: 2,
-      image: "https://via.placeholder.com/300",
+      media_id: 2,
+      media_file: "https://via.placeholder.com/300",
       title: "Card Title 2",
       description: "This is a short description for card 2.",
       time: "1h 45m",
     },
     {
-      id: 3,
-      image: "https://via.placeholder.com/300",
+      media_id: 3,
+      media_file: "https://via.placeholder.com/300",
       title: "Card Title 3",
       description: "This is a short description for card 3.",
       time: "3h 10m",
     },
     {
-      id: 4,
-      image: "https://via.placeholder.com/300",
+      media_id: 4,
+      media_file: "https://via.placeholder.com/300",
       title: "Card Title 4",
       description: "This is a short description for card 4.",
       time: "2h 15m",
     },
-  ];
+  ])
+  useEffect(()=>{
+    setLoading(true)
+    getMedia().then(res=>{
+      setLoading(false)
+      setCards(res.data)
+    }).catch(err=>{
+      console.error(err);
+      setLoading(false)
+      
+    })
+  },[])
 
   const onPress = useCallback((id:string)=>{
     navigate(`/info?id=${id}`)
   },[navigate])
 
+  if(Loading){
+    return  <Loader />
+  }
   return (
     <>
     <CustomHeader />
@@ -51,13 +68,13 @@ const HomeScreen = () => {
           <button
             type="button"
             onClick={()=>{
-              onPress(card.id.toString());
+              onPress(card.media_id.toString());
             }}
-            key={card.id}
+            key={card.media_id}
             className="bg-white rounded-lg shadow-md overflow-hidden"
           >
             <img
-              src={card.image}
+              src={card.media_file}
               alt={card.title}
               className="w-full h-48 object-cover"
             />

@@ -1,19 +1,61 @@
-import React, { useState, useRef } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import CustomHeader from "../components/Header";
-import { AiFillLike,AiFillDislike  } from "react-icons/ai";
+import { AiFillLike, AiFillDislike } from "react-icons/ai";
 import { MdDelete } from "react-icons/md";
-
+import { getContent, postComment, postLike } from "../api/api";
+import { useLocation } from "react-router";
+import Loader from "../components/Loader";
 
 const InfoScreen: React.FC = () => {
   const [likes, setLikes] = useState<number>(0);
-  const [comments, setComments] = useState<string[]>([]);
+  const [comments, setComments] = useState<any[]>([]);
   const [commentInput, setCommentInput] = useState<string>("");
+  const [content, setContent] = useState<any>(null); // Store fetched content
+  const location = useLocation();
+  const queryParams = new URLSearchParams(location.search);
+  const contentId = queryParams.get("id"); // Correct query parameter retrieval
+  const [loader,setLoader] = useState(false);
+  // Fetch content based on the `id` query parameter
+  useEffect(() => {
+    const fetchData = async () => {
+      if (contentId) {
+        setLoader(true)
+        try {
+          const data = await getContent(contentId);
+
+          
+          setLikes(data.like ? 1:0)
+          setComments(data?.comments);
+          setContent(data.media);
+        } catch (err) {
+          console.error("Error fetching content:", err);
+        }
+        finally{
+          setLoader(false)
+        }
+      }
+    };
+
+    fetchData();
+  }, [contentId]);
 
   // Ref for the input element
   const commentInputRef = useRef<HTMLInputElement | null>(null);
 
-  const handleLike = (): void => {
-    setLikes((prevLikes) => prevLikes + 1);
+  const handleLike = async(): Promise<void> => {    
+    try{
+      setLoader(true)
+      if(likes >= 1){
+        return 
+      }
+      await postLike(contentId)
+      setLikes(1)
+  }catch(err){
+    console.log(err);
+  }
+  finally{
+    setLoader(false)
+  }
   };
 
   const handleUnlike = (): void => {
@@ -22,11 +64,20 @@ const InfoScreen: React.FC = () => {
     }
   };
 
-  const handleAddComment = (): void => {
-    if (commentInput.trim()) {
-      setComments((prevComments) => [...prevComments, commentInput.trim()]);
-      setCommentInput("");
+  const handleAddComment = async(): Promise<void> => {
+    try{
+      setLoader(true)
+      if (commentInput.trim()) {
+        const data = await postComment(contentId,commentInput.trim())
+        setComments(data.comments);
+        setCommentInput("");
+      }
+    }catch(err){
+      console.log(err);
+    }finally{
+      setLoader(false)
     }
+     
   };
 
   const handleDeleteComment = (index: number): void => {
@@ -37,6 +88,10 @@ const InfoScreen: React.FC = () => {
     commentInputRef.current?.focus();
   };
 
+  if(loader){
+    return <Loader />
+  }
+
   return (
     <>
       <CustomHeader />
@@ -44,18 +99,17 @@ const InfoScreen: React.FC = () => {
         <div className="max-w-3xl mx-auto bg-white shadow-lg rounded-lg overflow-hidden">
           {/* Image Section */}
           <img
-            src="https://via.placeholder.com/800x400"
-            alt="Info"
+            src={content?.media_file || "https://via.placeholder.com/800x400"}
+            alt={content?.name || "Info"}
             className="w-full h-64 object-cover"
           />
 
           {/* Content Section */}
           <div className="p-6">
-            <h1 className="text-2xl font-bold mb-4">Beautiful Sunset</h1>
+            <h1 className="text-2xl font-bold mb-4">{content?.name || "Beautiful Sunset"}</h1>
             <p className="text-gray-700 mb-6">
-              Witness the mesmerizing beauty of the sunset, where the sky dances
-              with hues of orange, pink, and purple. A moment of peace and
-              tranquility that connects you with nature.
+              {content?.description ||
+                "Witness the mesmerizing beauty of the sunset, where the sky dances with hues of orange, pink, and purple. A moment of peace and tranquility that connects you with nature."}
             </p>
 
             {/* Like and Unlike Buttons */}
@@ -65,7 +119,7 @@ const InfoScreen: React.FC = () => {
                 className="flex items-center bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition"
               >
                 <AiFillLike />
-               <p className="text-sm">  {likes > 0 && `(${likes})`}</p>
+                <p className="ml-2">{likes > 0 && `(${likes})`}</p>
               </button>
               <button
                 onClick={handleUnlike}
@@ -98,18 +152,24 @@ const InfoScreen: React.FC = () => {
 
               {/* Comment List */}
               <ul className="space-y-4">
-                {comments.map((comment, index) => (
-                  <li key={index} className="bg-gray-100 p-4 rounded-lg shadow-sm flex justify-between items-center">
-                    <span>{comment}</span>
+                {comments.map((comment, index) =>{
+                  console.log(comment?.comment.toString());
+                  
+                  return(
+                  <li
+                    key={index}
+                    className="bg-gray-100 p-4 rounded-lg shadow-sm flex justify-between items-center"
+                  >
+                  
+                    <span>{comment.comment.toString()}</span>
                     <button
                       onClick={() => handleDeleteComment(index)}
                       className="text-red-600 hover:text-red-800 transition"
                     >
-                      {/* <span className="material-icons">delete</span> */}
-                      <MdDelete color="#dc2626" />
+                      <MdDelete />
                     </button>
                   </li>
-                ))}
+                )})}
               </ul>
             </div>
           </div>
