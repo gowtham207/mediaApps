@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import Header from '../components/Header';
 import Loader from '../components/Loader';
 import { getMedia } from '../api/api';
+import { useNavigate } from 'react-router';
 
 interface CardData {
   media_id: string;
@@ -12,7 +13,7 @@ interface CardData {
 
 const Home: React.FC = () => {
   const [loader,setLoader] = useState(false)
-
+  const nav = useNavigate()
   // State for the card data
   const [cardData, setCardData] = useState<CardData[]>([
     {
@@ -39,6 +40,10 @@ const Home: React.FC = () => {
 
   },[])
 
+  const viewButton = (id:string) =>{
+    nav(`/info?id=${id}`)
+  }
+
   if(loader){
     return <Loader />
   }
@@ -52,6 +57,9 @@ const Home: React.FC = () => {
           {cardData.map((card) => (
             <div
               key={card.media_id}
+              onClick={()=>{
+                viewButton(card.media_id)
+              }}
               className="bg-white rounded-lg shadow-md overflow-hidden transform transition-all duration-500 ease-in-out hover:scale-105 hover:shadow-lg animate-fade-in"
             >
               <img
