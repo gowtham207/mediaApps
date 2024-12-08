@@ -14,6 +14,7 @@ const Home: React.FC = () => {
   const nav = useNavigate()
 
   useEffect(()=>{
+    setLoading(true)
     getMedia().then(res=>{
       setLoading(false)
       setMovies(res.data)

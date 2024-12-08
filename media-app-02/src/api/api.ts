@@ -18,7 +18,7 @@ export const AxiosObj = axios.create({
 
 export const getMedia = () => AxiosObj.get('media').then((res)=>res.data);
 
-export const getContent = (id:string) => AxiosObj.get('content',{params:{
+export const getContent = (id:string|null) => AxiosObj.get('content',{params:{
   media_id:id
 }}).then((res)=>res.data);
 

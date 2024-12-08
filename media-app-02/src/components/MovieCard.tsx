@@ -11,7 +11,7 @@ interface MovieCardProps {
 
 const MovieCard: React.FC<MovieCardProps> = ({ name, description, duration, imageUrl,onclick }) => {
   return (
-    <button className="bg-gray-800 text-white p-4 rounded-lg shadow-lg w-64" onClick={onclick}>
+    <button className="bg-gray-800 text-white p-4 rounded-lg mx-4 shadow-lg w-64" onClick={onclick}>
       {/* Image */}
       <img
         src={imageUrl}

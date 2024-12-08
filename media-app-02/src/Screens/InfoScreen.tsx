@@ -3,24 +3,35 @@ import { FaThumbsUp, FaThumbsDown } from 'react-icons/fa'; // Importing icons fr
 import Header from '../components/CustomHeader';
 import Loader from '../components/Loader';
 import { useLocation } from 'react-router';
-import { getContent } from '../api/api';
+import { getContent, postComment, postLike } from '../api/api';
+
+export type data ={
+  "media_id": string
+  "description": string
+  "name": string
+  "media_file":string
+}
+
 
 const InfoScreen: React.FC = () => {
   const [likes, setLikes] = useState<number>(0);
   const [comment, setComment] = useState<string>('');
-  const [comments, setComments] = useState<{ id: number, text: string }[]>([]);
+  const [comments, setComments] = useState<{ comment: string, id: string }[]>([]);
   const [loader,setLoader] = useState(false)
+  const [content,setContent] = useState<data | null>(null);
   const location = useLocation();
   const queryParams = new URLSearchParams(location.search);
   const contentId = queryParams.get("id"); // Correct query parameter retrieval
-  const [content,setContent] = useState();
+
   useEffect(()=>{
     (async()=>{
       setLoader(true)
       try{
         const data = await getContent(contentId)
         console.log(data);
-        
+        setContent(data.media)
+        setLikes(data.like ? 1:0)
+        setComments(data.comments)
       }catch(err){
         console.log(err)
       }finally{
@@ -33,28 +44,51 @@ const InfoScreen: React.FC = () => {
     setComment(e.target.value);
   };
 
-  const handleAddComment = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (comment.trim()) {
-      setComments([...comments, { id: Date.now(), text: comment }]);
-      setComment('');
+  const handleAddComment = async(e: React.FormEvent) => {
+   try{
+    setLoader(true)
+     e.preventDefault();
+    if(comment.trim()){
+      const data = await postComment(contentId,comment.trim())
+      setComment("")
+      setComments(data.comments)
+    }
+   }catch(err){
+    console.log(err);
+   }finally{
+    setLoader(false)
+   }
+  };
+
+  const handleLike = async():Promise<void>  => {
+    try{
+      if(likes ==0){
+        setLoader(true)
+        const data = await postLike(contentId)
+        setLikes(1)
+      }
+    }catch(err){
+      console.log(err);
+    }finally{
+      setLoader(false)
     }
   };
 
-  const handleLike = () => {
-    setLikes(likes + 1);
-  };
-
-  const handleDislike = () => {
+  const handleDislike = async():Promise<void> => {
     // Dislike decreases likes if there are any, but not below 0
+   try{
     if (likes > 0) {
+      setLoader(true)
+      const data = await postLike(contentId)
       setLikes(likes - 1);
     }
+   }catch(err){
+    console.log(err);
+   }finally{
+    setLoader(false)
+   }
   };
 
-  const handleDeleteComment = (id: number) => {
-    setComments(comments.filter(comment => comment.id !== id)); // Remove comment by ID
-  };
 
   if(loader){
     return <Loader />
@@ -69,17 +103,16 @@ const InfoScreen: React.FC = () => {
         <div className="flex flex-col sm:flex-row items-center sm:items-start text-white">
           <div className="w-full sm:w-1/3 mb-8 sm:mb-0">
             <img
-              src="https://via.placeholder.com/400"  // Replace with actual movie image URL
+              src={content?.media_file?content.media_file:""} // Replace with actual movie image URL
               alt="Movie Poster"
               className="w-full rounded-lg shadow-lg"
             />
           </div>
 
           <div className="sm:w-2/3 sm:pl-6">
-            <h1 className="text-3xl font-bold mb-4">Movie Title</h1>
+            <h1 className="text-3xl font-bold mb-4">{content?.name}</h1>
             <p className="text-lg mb-6">
-              This is a brief description of the movie. It gives an overview of the plot and main points.
-              The description will give users a better understanding of what the movie is about.
+             {content?.description}
             </p>
 
             {/* Like/Dislike Buttons */}
@@ -120,14 +153,8 @@ const InfoScreen: React.FC = () => {
               {/* Display Comments */}
               <div className="space-y-4">
                 {comments.map((comment) => (
-                  <div key={comment.id} className="bg-gray-800 p-4 rounded-lg shadow-md flex justify-between items-center">
-                    <p>{comment.text}</p>
-                    <button
-                      onClick={() => handleDeleteComment(comment.id)}
-                      className="text-red-500 hover:text-red-700 font-semibold"
-                    >
-                      Delete
-                    </button>
+                  <div className="bg-gray-800 p-4 rounded-lg shadow-md flex justify-between items-center">
+                    <p>{comment.comment}</p>
                   </div>
                 ))}
               </div>
