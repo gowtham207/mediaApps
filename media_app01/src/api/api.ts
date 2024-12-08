@@ -1,6 +1,6 @@
 import axios from "axios"
 
-const ApiUrl:string = "https://1zybssqrcg.execute-api.ap-south-1.amazonaws.com/dev"
+const ApiUrl:string = "https://75e4x0bbtg.execute-api.us-east-1.amazonaws.com/dev"
 
 
 export const LoginApi =(data: { username: string; password: string })=> axios.post(`${ApiUrl}/login`,data).then(res=>res.data)
