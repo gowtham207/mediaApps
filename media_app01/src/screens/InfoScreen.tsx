@@ -8,6 +8,7 @@ import Loader from "../components/Loader";
 
 const InfoScreen: React.FC = () => {
   const [likes, setLikes] = useState<number>(0);
+  const [likeid,setLikeId] = useState<string>("");
   const [comments, setComments] = useState<any[]>([]);
   const [commentInput, setCommentInput] = useState<string>("");
   const [content, setContent] = useState<any>(null); // Store fetched content
@@ -22,9 +23,10 @@ const InfoScreen: React.FC = () => {
         setLoader(true)
         try {
           const data = await getContent(contentId);
-
+          console.log(data.like);
           
           setLikes(data.like ? 1:0)
+          setLikeId(data.like ? data.like.id : '')
           setComments(data?.comments);
           setContent(data.media);
         } catch (err) {
@@ -48,7 +50,9 @@ const InfoScreen: React.FC = () => {
       if(likes >= 1){
         return 
       }
-      await postLike(contentId)
+      const data = await postLike(contentId)
+      console.log("Like da ",data);
+      
       setLikes(1)
   }catch(err){
     console.log(err);
@@ -58,9 +62,12 @@ const InfoScreen: React.FC = () => {
   }
   };
 
-  const handleUnlike = (): void => {
+  const handleUnlike = async(): Promise<void> => {
     if (likes > 0) {
+      setLoader(true)
+      const data = await postLike(contentId)
       setLikes((prevLikes) => prevLikes - 1);
+      setLoader(false)
     }
   };
 
@@ -152,9 +159,7 @@ const InfoScreen: React.FC = () => {
 
               {/* Comment List */}
               <ul className="space-y-4">
-                {comments.map((comment, index) =>{
-                  console.log(comment?.comment.toString());
-                  
+                {comments.map((comment, index) =>{                  
                   return(
                   <li
                     key={index}
@@ -162,12 +167,6 @@ const InfoScreen: React.FC = () => {
                   >
                   
                     <span>{comment.comment.toString()}</span>
-                    <button
-                      onClick={() => handleDeleteComment(index)}
-                      className="text-red-600 hover:text-red-800 transition"
-                    >
-                      <MdDelete />
-                    </button>
                   </li>
                 )})}
               </ul>

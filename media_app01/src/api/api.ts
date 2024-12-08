@@ -26,6 +26,7 @@ export const postLike = (id:string|null) => AxiosObj.post('/like',{
   'media_id':id
 }).then((res)=>res.data)
 
+
 export const postComment = (id:string|null , comment:string) => AxiosObj.post("/comment",{
   'media_id':id,
 'comment':comment

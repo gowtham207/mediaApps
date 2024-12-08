@@ -1,11 +1,33 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { FaThumbsUp, FaThumbsDown } from 'react-icons/fa'; // Importing icons from react-icons
 import Header from '../components/CustomHeader';
+import Loader from '../components/Loader';
+import { useLocation } from 'react-router';
+import { getContent } from '../api/api';
 
 const InfoScreen: React.FC = () => {
   const [likes, setLikes] = useState<number>(0);
   const [comment, setComment] = useState<string>('');
   const [comments, setComments] = useState<{ id: number, text: string }[]>([]);
+  const [loader,setLoader] = useState(false)
+  const location = useLocation();
+  const queryParams = new URLSearchParams(location.search);
+  const contentId = queryParams.get("id"); // Correct query parameter retrieval
+  const [content,setContent] = useState();
+  useEffect(()=>{
+    (async()=>{
+      setLoader(true)
+      try{
+        const data = await getContent(contentId)
+        console.log(data);
+        
+      }catch(err){
+        console.log(err)
+      }finally{
+        setLoader(false)
+      }
+    })()
+  },[])
 
   const handleCommentChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     setComment(e.target.value);
@@ -33,6 +55,10 @@ const InfoScreen: React.FC = () => {
   const handleDeleteComment = (id: number) => {
     setComments(comments.filter(comment => comment.id !== id)); // Remove comment by ID
   };
+
+  if(loader){
+    return <Loader />
+  }
 
   return (
     <div className="bg-gray-900 min-h-screen">

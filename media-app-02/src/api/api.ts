@@ -18,7 +18,18 @@ export const AxiosObj = axios.create({
 
 export const getMedia = () => AxiosObj.get('media').then((res)=>res.data);
 
-export const getComment = () => AxiosObj.get('comment').then((res)=>res.data);
+export const getContent = (id:string) => AxiosObj.get('content',{params:{
+  media_id:id
+}}).then((res)=>res.data);
 
-export const getLikes = () => AxiosObj.get('like').then((res)=>res.data);
+export const postLike = (id:string|null) => AxiosObj.post('/like',{
+  'media_id':id
+}).then((res)=>res.data)
+
+export const postComment = (id:string|null , comment:string) => AxiosObj.post("/comment",{
+  'media_id':id,
+'comment':comment
+}).then(res=>res.data)
+
+// export const getLikes = () => AxiosObj.get('like').then((res)=>res.data);
 
